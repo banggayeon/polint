@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import type { GetRunResponse, DocDto, NormalizedPolicy } from "./polintApi";
 
+export type InspectionDoc = {
+  id: string;
+  title: string;
+  content: string;
+};
+
 export type PolintState = {
   regulationText: string;
   policyId?: string;
@@ -16,6 +22,9 @@ export type PolintState = {
 
   rulesetId?: string;
   lastRun?: GetRunResponse;
+
+  //step5. (문서 검사) 대상 문서들
+  inspectionDocs: InspectionDoc[];
 };
 
 type PolintContextValue = {
@@ -38,6 +47,7 @@ export function PolintProvider({ children }: { children: React.ReactNode }) {
     regulationText: DEFAULT_REG,
     knowledgeDocs: [],
     hitlAnswers: {},
+    inspectionDocs: [],
   });
 
   const value = useMemo(() => ({ state, setState }), [state]);

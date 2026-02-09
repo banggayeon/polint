@@ -38,7 +38,7 @@ export type GetRunResponse = {
 export type ExtractTextResponse = {
   title?: string;
   text: string;
-  sourceType: string;
+  sourceType: "file" | "url";
   mimeType?: string;
 };
 

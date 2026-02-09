@@ -145,6 +145,7 @@ export function UploadScreen({ onNext }: UploadScreenProps) {
         normalizedPolicy: undefined,
         knowledgeDocs: [],
         hitlAnswers: {},
+        inspectionDocs: [],
       }));
 
       const resp = await createPolicy(regulationText);
