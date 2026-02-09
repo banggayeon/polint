@@ -35,6 +35,13 @@ export type GetRunResponse = {
   resultJson: string;
 };
 
+export type ExtractTextResponse = {
+  title?: string;
+  text: string;
+  sourceType: string;
+  mimeType?: string;
+};
+
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? "/api/v1";
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -58,6 +65,33 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return body.data;
+}
+
+async function requestForm<T>(path: string, form: FormData): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    body: form,
+  });
+  const body = (await res.json()) as ApiResponse<T>;
+  if (!res.ok || !body.success) {
+    const msg = body?.error?.message || `Request failed: ${res.status}`;
+    throw new Error(msg);
+  }
+  if (body.data === undefined) throw new Error("Malformed response: missing data");
+  return body.data;
+}
+
+export async function extractTextFromFile(file: File): Promise<ExtractTextResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  return requestForm<ExtractTextResponse>("/documents/extract/file", form);
+}
+
+export async function extractTextFromUrl(url: string): Promise<ExtractTextResponse> {
+  return requestJson<ExtractTextResponse>("/documents/extract/url", {
+    method: "POST",
+    body: JSON.stringify({ url }),
+  });
 }
 
 export async function createPolicy(regulationText: string): Promise<CreatePolicyResponse> {
