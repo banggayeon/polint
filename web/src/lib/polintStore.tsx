@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
-import type { GetRunResponse, DocDto, NormalizedPolicy } from "./polintApi";
+import type {
+  GetRunResponse,
+  DocDto,
+  NormalizedPolicy,
+  RuleSet,
+  TestSuite,
+  VerificationReport,
+} from "./polintApi";
 
 export type InspectionDoc = {
   id: string;
@@ -10,6 +17,11 @@ export type InspectionDoc = {
 export type PolintState = {
   regulationText: string;
   policyId?: string;
+
+  // ✅ Step3(build) 결과 - demo 대신 실제 데이터 렌더링용
+  ruleset?: RuleSet;
+  testsuite?: TestSuite;
+  verificationReport?: VerificationReport;
 
   // ✅ Step2 결과
   normalizedPolicy?: NormalizedPolicy;

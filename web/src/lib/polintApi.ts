@@ -18,6 +18,56 @@ export type CreatePolicyResponse = {
 export type BuildPolicyResponse = {
   policyId: string;
   rulesetId: string;
+
+  // Step3에서 실제 결과 표시용
+  normalizedPolicy?: unknown;
+  ruleset?: RuleSet;
+  testsuite?: TestSuite;
+  verificationReport?: VerificationReport;
+};
+
+// ===== Agent build 결과 타입 (agent/polint_lcel.py 스키마 기준) =====
+export type RuleType =
+  | "FORBIDDEN_PHRASE"
+  | "REQUIRED_PHRASE"
+  | "REGEX_MUST_MATCH"
+  | "REGEX_MUST_NOT_MATCH"
+  | "REQUIRED_SECTION_HEADING"
+  | "REQUIRED_KV_FIELD"
+  | "KV_FIELD_REGEX"
+  | "KV_FIELD_ALLOWED_VALUES";
+
+export type Rule = {
+  rule_id: string;
+  clause_id: string;
+  severity: "error" | "warn";
+  rule_type: RuleType;
+  pattern?: string | null;
+  target_key?: string | null;
+  allowed_values?: string[] | null;
+  message: string;
+  fix_hint?: string | null;
+};
+
+export type RuleSet = {
+  policy_id: string;
+  rules: Rule[];
+};
+
+export type TestCase = {
+  test_id: string;
+  doc_text: string;
+  expected_violations: string[];
+};
+
+export type TestSuite = {
+  tests: TestCase[];
+};
+
+export type VerificationReport = {
+  summary: string;
+  mismatches?: string[];
+  suggested_rule_tweaks?: string[];
 };
 
 export type DocDto = {

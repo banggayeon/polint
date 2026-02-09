@@ -73,7 +73,14 @@ public class PolicyService {
                 verificationJson
         ));
 
-        return new BuildPolicyResponse(policy.getPolicyId(), rulesetId);
+        return new BuildPolicyResponse(
+                policy.getPolicyId(),
+                rulesetId,
+                agentResp.normalized_policy(),
+                agentResp.ruleset(),
+                agentResp.testsuite(),
+                agentResp.verification_report()
+        );
     }
 
     public LintResponse lint(LintRequest req) {
