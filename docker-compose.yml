@@ -1,0 +1,56 @@
+services:
+  web:
+    build:
+      context: ./web
+    depends_on:
+      - spring
+    ports:
+      - "80:80"
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: polint
+      POSTGRES_USER: polint
+      POSTGRES_PASSWORD: polint
+    # ports:
+    #   - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U polint -d polint"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  agent:
+    build:
+      context: ./agent/polint-agent
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY-${GEMINI_API_KEY}}
+      MODEL_NORMALIZER: ${MODEL_NORMALIZER-gpt-4o-mini}
+      MODEL_COMPILER: ${MODEL_COMPILER-claude-sonnet-4-5-20250929}
+      MODEL_FIXER: ${MODEL_FIXER-claude-haiku-4-5-20251001}
+      MODEL_VERIFIER: ${MODEL_VERIFIER-gemini-2.0-flash}
+      MODEL_AUDITOR: ${MODEL_AUDITOR-gemini-2.0-flash-lite}
+      EMBED_MODEL: ${EMBED_MODEL-text-embedding-3-small}
+      FALLBACK_COMPILER: ${FALLBACK_COMPILER-claude-sonnet-4-5-20250929}
+      FALLBACK_VERIFIER: ${FALLBACK_VERIFIER-gemini-2.5-flash}
+      FALLBACK_AUDITOR: ${FALLBACK_AUDITOR-gemini-2.5-flash-lite}
+    # ports:
+    #   - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  spring:
+    build:
+      context: ./spring/polint-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      agent:
+        condition: service_started
