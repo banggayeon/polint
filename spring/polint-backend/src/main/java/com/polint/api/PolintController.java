@@ -7,12 +7,27 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+import com.polint.application.DocumentService;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1")
 public class PolintController {
 
     private final PolicyService policyService;
+    private final DocumentService documentService;
+
+    @PostMapping(value = "/documents/extract/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ExtractTextResponse> extractFile(@RequestPart("file") MultipartFile file) {
+        return ApiResponse.ok(documentService.extractFromFile(file));
+    }
+    
+    @PostMapping("/documents/extract/url")
+    public ApiResponse<ExtractTextResponse> extractUrl(@RequestBody @Valid ExtractUrlRequest req) {
+        return ApiResponse.ok(documentService.extractFromUrl(req));
+    }
 
     @PostMapping("/policies")
     public ApiResponse<CreatePolicyResponse> createPolicy(@RequestBody @Valid CreatePolicyRequest req) {
@@ -47,5 +62,4 @@ public class PolintController {
     ) {
         return ApiResponse.ok(policyService.normalizePolicy(policyId, req));
     }
-
 }

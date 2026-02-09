@@ -43,11 +43,13 @@ public class PolicyService {
         var policy = policyRepository.findById(policyId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "policy not found: " + policyId));
 
-        var knowledgeDocsForAgent = req == null || req.knowledgeDocs() == null
-                ? null
+        var knowledgeDocsForAgent =
+        (req == null || req.knowledgeDocs() == null)
+                ? List.<AgentDocDto>of()
                 : req.knowledgeDocs().stream()
                         .map(doc -> new AgentDocDto(doc.title(), doc.content()))
                         .toList();
+        
 
         var agentResp = agentClient.build(new AgentBuildRequest(
                 policy.getPolicyId(),
