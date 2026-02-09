@@ -2,6 +2,8 @@ fastapi==0.115.6
 uvicorn[standard]==0.30.6
 pydantic==2.10.4
 
+python-multipart>=0.0.9
+
 # LangChain (LCEL)
 langchain-core>=0.3.0
 langchain-community>=0.3.0
