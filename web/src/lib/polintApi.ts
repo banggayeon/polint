@@ -94,6 +94,10 @@ export type ExtractTextResponse = {
 
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? "/api/v1";
 
+const DEMO_ONLY = (import.meta.env.VITE_DEMO_ONLY as string | undefined) === "true";
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -132,6 +136,9 @@ async function requestForm<T>(path: string, form: FormData): Promise<T> {
 }
 
 export async function extractTextFromFile(file: File): Promise<ExtractTextResponse> {
+  if (DEMO_ONLY) {
+    throw new Error("데모(프론트-only) 모드에서는 PDF/DOCX 추출을 지원하지 않습니다. TXT/MD로 업로드하세요.");
+  }
   const form = new FormData();
   form.append("file", file);
   return requestForm<ExtractTextResponse>("/documents/extract/file", form);
@@ -145,6 +152,10 @@ export async function extractTextFromUrl(url: string): Promise<ExtractTextRespon
 }
 
 export async function createPolicy(regulationText: string): Promise<CreatePolicyResponse> {
+  if (DEMO_ONLY) {
+    await sleep(200);
+    return { policyId: "demo-policy-001", version: "demo" };
+  }
   return requestJson<CreatePolicyResponse>("/policies", {
     method: "POST",
     body: JSON.stringify({ regulationText }),
@@ -152,6 +163,10 @@ export async function createPolicy(regulationText: string): Promise<CreatePolicy
 }
 
 export async function buildPolicy(policyId: string, knowledgeDocs: DocDto[] = []): Promise<BuildPolicyResponse> {
+  if (DEMO_ONLY) {
+    await sleep(200);
+    return { policyId, rulesetId: "demo-ruleset-001" };
+  }
   return requestJson<BuildPolicyResponse>(`/policies/${encodeURIComponent(policyId)}/build`, {
     method: "POST",
     body: JSON.stringify({ knowledgeDocs }),
@@ -159,6 +174,10 @@ export async function buildPolicy(policyId: string, knowledgeDocs: DocDto[] = []
 }
 
 export async function lint(rulesetId: string, docs: DocDto[]): Promise<LintResponse> {
+  if (DEMO_ONLY) {
+    await sleep(300);
+    return { runId: "demo-run-001" };
+  }
   return requestJson<LintResponse>("/lint", {
     method: "POST",
     body: JSON.stringify({ rulesetId, docs }),
@@ -166,9 +185,25 @@ export async function lint(rulesetId: string, docs: DocDto[]): Promise<LintRespo
 }
 
 export async function getRun(runId: string): Promise<GetRunResponse> {
-  return requestJson<GetRunResponse>(`/runs/${encodeURIComponent(runId)}`, {
-    method: "GET",
-  });
+  if (DEMO_ONLY) {
+    await sleep(200);
+    const resultJson = JSON.stringify({
+      per_doc: {
+        "개인정보 처리방침_v1.2.pdf": {
+          violations: [
+            { rule_id: "RULE-004", severity: "error", message: '고유식별정보 "주민등록번호" 검출', line: 12, clause_ref: "POL-004" },
+            { rule_id: "RULE-003", severity: "error", message: "비밀번호 정책 미준수: 최소 8자/특수문자 필요", line: 16, clause_ref: "POL-003" },
+          ],
+          diff: "--- a/doc\n+++ b/doc\n@@ -1,1 +1,1 @@\n-주민등록번호\n+",
+          audit_log: { events: [{ timestamp: new Date().toISOString(), action: "violation_detected", detail: "데모 로그", severity: "info" }] },
+        },
+      },
+    }, null, 2);
+
+    return { runId, rulesetId: "demo-ruleset-001", resultJson };
+  }
+
+  return requestJson<GetRunResponse>(`/runs/${encodeURIComponent(runId)}`, { method: "GET" });
 }
 
 // ✅ 추가: Normalizer 결과 타입
